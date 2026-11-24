@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ColinGPT9/clips-studio/main/sdk/python/clipskitty_sdk/schema/clipskitty.schema.json
+# What Clips Kitty reads about this plugin. Every field is described in
+# https://github.com/ColinGPT9/clips-studio/blob/main/docs/developers/plugin-manifest.md
+manifest_version: 1
+id: spandanandhale2007-max/valorant-clutches
+name: "Valorant Clutches and Aces"
+version: 0.1.0
+kind: pipeline
+capability: highlight_detection
+description: >
+  Finds Valorant multi-kills, aces and clutches by watching the kill feed's
+  corner of the screen for bursts of change, and by what the streamer says.
+  It counts how often that small part of the picture changes, not kills: it
+  cannot read the feed's names or text, so a HUD at another position or
+  scale, a spectator or replay UI, an overlay or a webcam in that corner, and
+  a busy minimap will all fool it. Ace and clutch are named from the rate of
+  those changes and from words like "ace", "clutch" or "1v3" in the
+  transcript, never from the game's own state. A quiet round with no feed
+  activity in view is missed.
+author: {name: "spandanandhale2007-max"}
+license: "MIT"
+requires: {clips_kitty: ">=2.1", plugin_api: 1}
+run:
+  command: ["{python}", "src/main.py"]
+execution: local
+inputs: [video, transcript]
+outputs: [ranges]
+events: [ace, clutch, multikill]
+games: [valorant]
+settings:
+  feed_region:
+    type: string
+    default: "0.62,0.08,0.37,0.20"
+    max_length: 100
+    title: Where the kill feed shows, as left, top, width, height (0 to 1)
+    description: >
+      Valorant's kill feed sits in the top right on a 16:9 1080p HUD. Change
+      this for an ultrawide monitor, a stream with a border or a different
+      HUD scale.
+  feed_change:
+    type: number
+    default: 6
+    minimum: 1
+    maximum: 255
+    title: How much that corner must change to count as a feed update (0 to 255)
+  window_seconds:
+    type: number
+    default: 12
+    minimum: 3
+    maximum: 60
+    title: How close together the updates must be to be one fight (seconds)
+  kills_for_multikill:
+    type: integer
+    default: 3
+    minimum: 2
+    maximum: 10
+    title: Feed updates in that window before it is a moment
+  kills_for_ace:
+    type: integer
+    default: 5
+    minimum: 3
+    maximum: 12
+    title: Feed updates in that window before it is called an ace
+  use_transcript:
+    type: boolean
+    default: true
+    title: Also use what the streamer says to name the moment
+  words_ace:
+    type: string
+    default: "ace, aced, team ace, five for five"
+    max_length: 300
+    title: Words that mean an ace
+  words_clutch:
+    type: string
+    default: "clutch, clutched, clutching, 1v2, 1v3, 1v4, 1v5, one v two, one v three, one v four, one v five, defuse, defused, retake, retaking, last alive"
+    max_length: 400
+    title: Words that mean a clutch
+  louder_by_db:
+    type: number
+    default: 6
+    minimum: 1
+    maximum: 30
+    title: How much louder the sound must get to count as a gunfight (dB)
+  needs_loud:
+    type: boolean
+    default: false
+    title: Only when the sound gets louder too
+  lead_seconds:
+    type: number
+    default: 8
+    minimum: 0
+    maximum: 30
+    title: Seconds kept before the first feed update
+  tail_seconds:
+    type: number
+    default: 4
+    minimum: 0
+    maximum: 30
+    title: Seconds kept after the last one
+permissions: [video.read, transcript.read, ffmpeg]
+network: []
+sends: []
+requirements: {gpu: none, os: [windows, macos, linux]}
+category: gaming
